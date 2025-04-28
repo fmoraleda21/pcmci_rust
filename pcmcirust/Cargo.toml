@@ -1,0 +1,15 @@
+[package]
+name = "pcmcirust"
+version = "1.0.0"
+edition = "2024"
+
+[lib]
+name = "pcmcirust"
+path = "src/lib.rs"
+
+[dependencies]
+ndarray-linalg = "0.17.0"
+ndarray-parallel = "0.9.1"
+numpy = "0.24.0"
+rayon = "1.10.0"
+statrs = "0.18.0"

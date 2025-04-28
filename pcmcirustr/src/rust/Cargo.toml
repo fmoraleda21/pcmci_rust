@@ -1,0 +1,13 @@
+[package]
+name = "pcmcirustr"
+version = "1.0.0"
+edition = "2024"
+
+[lib]
+name = "pcmcirustr"
+crate-type = ['staticlib']
+
+[dependencies]
+numpy = "0.24.0"
+extendr-api = { version = "0.8.0", features = ["ndarray"] }
+pcmcirust = { path = "../../../pcmcirust" }
