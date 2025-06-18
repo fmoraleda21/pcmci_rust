@@ -2,3 +2,4 @@ numpy
 pandas
 tigramite
 statsmodels
+maturin
