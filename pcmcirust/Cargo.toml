@@ -8,8 +8,8 @@ name = "pcmcirust"
 path = "src/lib.rs"
 
 [dependencies]
+ndarray = "0.16.1"
 ndarray-linalg = "0.17.0"
 ndarray-parallel = "0.9.1"
-numpy = "0.24.0"
 rayon = "1.10.0"
 statrs = "0.18.0"
