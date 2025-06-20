@@ -1,6 +1,6 @@
 use ndarray_linalg::solve::Solve;
 use ndarray_parallel::prelude::*;
-use numpy::ndarray::{Array1, Array2, Array3, ArrayView2};
+use ndarray::{Array1, Array2, Array3, ArrayView2};
 use rayon::prelude::*;
 use statrs::distribution::ContinuousCDF;
 use std::collections::HashMap;
