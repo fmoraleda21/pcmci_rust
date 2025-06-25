@@ -84,19 +84,34 @@ jobs:
         with:
           python-version: 3.x
           architecture: ${{ matrix.platform.target }}
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\vcpkg\installed
+            C:\vcpkg\buildtrees
+            C:\vcpkg\packages
+          key: vcpkg-${{ matrix.platform.target }}-openblas
+        
       - name: Install vcpkg and OpenBLAS
         shell: pwsh
         run: |
           git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
           C:\vcpkg\bootstrap-vcpkg.bat
         
-          # Install OpenBLAS for the correct target (x64 or x86)
           if ("${{ matrix.platform.target }}" -eq "x64") {
-            C:\vcpkg\vcpkg install openblas:x64-windows
             $triplet = "x64-windows"
           } else {
-            C:\vcpkg\vcpkg install openblas:x86-windows
             $triplet = "x86-windows"
+          }
+        
+          Write-Host "Using OpenBLAS triplet: $triplet"
+        
+          # Check if OpenBLAS is already installed (skip if cached)
+          if (-not (Test-Path "C:\vcpkg\installed\$triplet\lib\libopenblas.lib")) {
+            C:\vcpkg\vcpkg install "openblas:$triplet"
+          } else {
+            Write-Host "OpenBLAS already cached for $triplet"
           }
         
           $prefix = "C:\vcpkg\installed\$triplet"
@@ -105,7 +120,7 @@ jobs:
           echo "OPENBLAS_DIR=$prefix" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "OPENBLAS_INCLUDE_DIR=$prefix\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "OPENBLAS_LIB_DIR=$prefix\lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "OPENBLAS_SYSTEM=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append        
+          echo "OPENBLAS_SYSTEM=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append                 
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
