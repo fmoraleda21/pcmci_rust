@@ -91,7 +91,7 @@ jobs:
             C:\vcpkg\installed
             C:\vcpkg\buildtrees
             C:\vcpkg\packages
-          key: vcpkg-${{ matrix.platform.target }}-openblas
+          key: vcpkg-${{ matrix.platform.target }}-openblas-lapack
         
       - name: Install vcpkg and OpenBLAS
         shell: pwsh
@@ -109,7 +109,7 @@ jobs:
         
           # Check if OpenBLAS is already installed (skip if cached)
           if (-not (Test-Path "C:\vcpkg\installed\$triplet\lib\libopenblas.lib")) {
-            C:\vcpkg\vcpkg install "openblas:$triplet"
+            C:\vcpkg\vcpkg install "openblas[lapack] --triplet $triplet"
           } else {
             Write-Host "OpenBLAS already cached for $triplet"
           }
