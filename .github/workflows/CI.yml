@@ -36,17 +36,22 @@ jobs:
           - runner: ubuntu-22.04
             target: ppc64le
     steps:
-  
       - uses: actions/checkout@v4
       - name: List root directory
         run: ls -R
-      - name: Move source files to root (hack)
+      - name: Move source files to root (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
-          mv pcmcirustpy/* .
-          rm -rf pcmcirustpy
+          if [ -d "pcmcirustpy" ]; then
+            mv pcmcirustpy/* .
+            rmdir pcmcirustpy
+          fi
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+      - name: List root directory
+        run: ls -R
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -71,10 +76,14 @@ jobs:
             target: x86
     steps:
       - uses: actions/checkout@v4
-      - name: Move source files to root (hack)
+      - name: Move source files to root (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          mv pcmcirustpy/* .
-          rm -rf pcmcirustpy
+          if (Test-Path "pcmcirustpy") {
+            Move-Item pcmcirustpy\* . -Force
+            Remove-Item -Recurse -Force pcmcirustpy
+          }
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
@@ -102,10 +111,14 @@ jobs:
             target: aarch64
     steps:
       - uses: actions/checkout@v4
-      - name: Move source files to root (hack)
+      - name: Move source files to root (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
-          mv pcmcirustpy/* .
-          rm -rf pcmcirustpy
+          if [ -d "pcmcirustpy" ]; then
+            mv pcmcirustpy/* .
+            rmdir pcmcirustpy
+          fi
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
