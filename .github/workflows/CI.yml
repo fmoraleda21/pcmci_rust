@@ -109,7 +109,7 @@ jobs:
         
           # Check if OpenBLAS is already installed (skip if cached)
           if (-not (Test-Path "C:\vcpkg\installed\$triplet\lib\libopenblas.lib")) {
-            C:\vcpkg\vcpkg install "openblas[lapack] --triplet $triplet"
+            C:\vcpkg\vcpkg install "openblas[lapack]:$triplet"
           } else {
             Write-Host "OpenBLAS already cached for $triplet"
           }
