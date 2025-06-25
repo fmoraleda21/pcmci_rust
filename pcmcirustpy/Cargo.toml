@@ -11,4 +11,4 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 numpy = "0.24.0"
 pyo3 = { version = "0.24.2", features = ["extension-module"] }
-pcmcirust = { path = "../pcmcirust" }
+pcmcirust = { path = "pcmcirust" }

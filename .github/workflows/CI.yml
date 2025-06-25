@@ -37,8 +37,6 @@ jobs:
             target: ppc64le
     steps:
       - uses: actions/checkout@v4
-      - name: List root directory
-        run: ls -R
       - name: Move source files to root (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
@@ -50,8 +48,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - name: List root directory
-        run: ls -R
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
