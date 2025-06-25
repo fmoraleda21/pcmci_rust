@@ -9,7 +9,10 @@ path = "src/lib.rs"
 
 [dependencies]
 ndarray = "0.16.1"
-ndarray-linalg = "0.17.0"
+ndarray-linalg = { version = "0.17.0", features = ["openblas-static"] }
 ndarray-parallel = "0.9.1"
 rayon = "1.10.0"
 statrs = "0.18.0"
+
+[build-dependencies]
+openblas-src = { version = "0.10", features = ["static"] }
