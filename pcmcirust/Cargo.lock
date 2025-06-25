@@ -639,7 +639,6 @@ dependencies = [
  "ndarray 0.16.1",
  "ndarray-linalg",
  "ndarray-parallel",
- "openblas-src",
  "rayon",
  "statrs",
 ]

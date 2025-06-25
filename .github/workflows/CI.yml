@@ -84,16 +84,33 @@ jobs:
         with:
           python-version: 3.x
           architecture: ${{ matrix.platform.target }}
-      - name: Set environment for OpenBLAS
-        if: runner.os == 'Windows'
+      - name: Install vcpkg and OpenBLAS
         shell: pwsh
         run: |
-          echo "OPENBLAS_STATIC=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+          C:\vcpkg\bootstrap-vcpkg.bat
+        
+          # Install OpenBLAS for the correct target (x64 or x86)
+          if ("${{ matrix.platform.target }}" -eq "x64") {
+            C:\vcpkg\vcpkg install openblas:x64-windows
+            $triplet = "x64-windows"
+          } else {
+            C:\vcpkg\vcpkg install openblas:x86-windows
+            $triplet = "x86-windows"
+          }
+        
+          $prefix = "C:\vcpkg\installed\$triplet"
+        
+          echo "VCPKG_ROOT=C:\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "OPENBLAS_DIR=$prefix" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "OPENBLAS_INCLUDE_DIR=$prefix\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "OPENBLAS_LIB_DIR=$prefix\lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "OPENBLAS_SYSTEM=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append        
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out dist --find-interpreter --features blas
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - name: Upload wheels
         uses: actions/upload-artifact@v4
