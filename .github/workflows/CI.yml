@@ -45,7 +45,7 @@ jobs:
         run: |
           if [ -d "pcmcirustpy" ]; then
             mv pcmcirustpy/* .
-            rmdir pcmcirustpy
+            rm -rf pcmcirustpy
           fi
       - uses: actions/setup-python@v5
         with:
@@ -117,7 +117,7 @@ jobs:
         run: |
           if [ -d "pcmcirustpy" ]; then
             mv pcmcirustpy/* .
-            rmdir pcmcirustpy
+            rm -rf pcmcirustpy
           fi
       - uses: actions/setup-python@v5
         with:
