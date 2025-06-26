@@ -13,8 +13,8 @@ ndarray-parallel = "0.9.1"
 rayon = "1.10.0"
 statrs = "0.18.0"
 
+[target.'cfg(not(windows))'.dependencies]
+ndarray-linalg = { version = "0.17.0" }
+
 [target.'cfg(windows)'.dependencies]
 ndarray-linalg = { version = "0.17.0", features = ["intel-mkl"] }
-
-[target.'cfg(not(windows))'.dependencies]
-ndarray-linalg = { version = "0.17.0", features = ["openblas-static"] }
