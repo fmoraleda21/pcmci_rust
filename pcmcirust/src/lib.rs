@@ -1,6 +1,6 @@
+use ndarray::{Array1, Array2, Array3, ArrayView2};
 use ndarray_linalg::solve::Solve;
 use ndarray_parallel::prelude::*;
-use ndarray::{Array1, Array2, Array3, ArrayView2};
 use rayon::prelude::*;
 use statrs::distribution::ContinuousCDF;
 use std::collections::HashMap;
@@ -451,7 +451,7 @@ impl<'a> PCMCI<'a> {
         if n_time <= self.max_lag {
             return Err("Not enough time steps for the specified max_lag.".to_string());
         }
-        // TODO
+
         let mut p_matrix = Array3::<f64>::from_elem((n_vars, n_vars, self.max_lag + 1), f64::NAN);
         let mut val_matrix = Array3::<f64>::from_elem((n_vars, n_vars, self.max_lag + 1), f64::NAN);
 
@@ -487,7 +487,6 @@ impl<'a> PCMCI<'a> {
         // Run the MCI phase
         self.run_mci_phase(&ts_cache, n).expect("MCI phase failed");
 
-        // TODO
         for link in &self.mci_links {
             if link.lag <= self.max_lag {
                 p_matrix[[link.source, link.target, link.lag]] = link.p_value;
