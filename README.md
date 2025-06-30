@@ -8,12 +8,12 @@ This repository provides an efficient and parallelized implementation of the PCM
 
 ```
 pcmci-rust/
- ├── pcmcirust/         # Core Rust implementation (safe, parallel, zero-copy)
- ├── pcmcirustpy/       # Python bindings (via PyO3 and maturin)
- │    ├── notebooks/    # Jupyter notebooks with usage examples & benchmarks vs tigramite
- ├── pcmcirustr/        # R bindings (via rextendr)
- │    ├── scripts/      # R scripts with usage examples
- ├── requirements.txt   # Python dependencies for development & testing
+ ├── pcmcirust/               # Core Rust implementation (safe, parallel, zero-copy)
+ ├── pcmcirustpy/             # Python bindings (via PyO3 and maturin)
+ │    ├── notebooks/          # Jupyter notebooks with usage examples & benchmarks vs tigramite
+ │    ├── requirements.txt    # Python dependencies for development & testing
+ ├── pcmcirustr/              # R bindings (via rextendr)
+ │    ├── scripts/            # R scripts with usage examples
 ```
 
 ---
@@ -28,6 +28,10 @@ pcmci-rust/
 ---
 
 ## 🐍 Python Installation & Usage
+
+```bash
+cd pcmcirustpy
+```
 
 1️⃣ Install dependencies:  
 ```bash
@@ -52,6 +56,10 @@ result = pcmcirustpy.run_pcmci(data_array, max_lag, alpha, ...)
 ---
 
 ## 📊 R Installation & Usage
+
+```bash
+cd pcmcirustr
+```
 
 1️⃣ Generate bindings:  
 ```r
