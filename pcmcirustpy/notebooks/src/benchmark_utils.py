@@ -13,92 +13,115 @@ from tigramite.independence_tests.parcorr import ParCorr
 import pcmcirustpy
 
 
-def plot(self, title="", max_lag=None):
-    """
-    Plots a time-unrolled causal graph with:
-    - Variables on Y-axis (alphabetical)
-    - Lags on X-axis (lag 0 = present)
-    - Arrows color-coded by weight strength
-    """
-    var_names = self.var_names
+class CausalStructure:
+    def __init__(self, edge_list, var_names):
+        self.edge_list = edge_list
+        self.var_names = var_names
 
-    if var_names is None:
-        var_set = {src for src, *_ in self.edge_list} | {
-            tgt for _, tgt, *_ in self.edge_list
-        }
-        var_names = sorted(var_set)
+    def as_dict(self):
+        """
+        Returns the causal structure as a dictionary mapping target variable indices
+        to lists of (source index, lag, coefficient) tuples.
+        """
+        var_indices = {name: i for i, name in enumerate(self.var_names)}
+        causal_structure_dict = {}
 
-    var_indices = {v: i for i, v in enumerate(var_names)}
-    n_vars = len(var_names)
+        for src, tgt, lag, coeff in self.edge_list:
+            tgt_idx = var_indices[tgt]
+            src_idx = var_indices[src]
 
-    if max_lag is None:
+            if tgt_idx not in causal_structure_dict:
+                causal_structure_dict[tgt_idx] = []
+            causal_structure_dict[tgt_idx].append((src_idx, lag, coeff))
+
+        return causal_structure_dict
+
+    def plot(self, title="", ax=None):
+        """
+        Plots a time-unrolled causal graph.
+        If ax is given, draw on it; otherwise create a new figure.
+        """
+
+        var_names = self.var_names
+
+        if var_names is None:
+            var_set = {src for src, *_ in self.edge_list} | {
+                tgt for _, tgt, *_ in self.edge_list
+            }
+            var_names = sorted(var_set)
+
+        var_indices = {v: i for i, v in enumerate(var_names)}
+        n_vars = len(var_names)
+
         max_lag = max(lag for _, _, lag, _ in self.edge_list)
 
-    fig, ax = plt.subplots(figsize=(3 * max_lag + 2, 0.8 * n_vars + 2))
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(3 * max_lag + 2, 0.8 * n_vars + 2))
 
-    norm = mcolors.Normalize(vmin=0, vmax=1)
-    cmap = cm.get_cmap("YlGn")
+        norm = mcolors.Normalize(vmin=0, vmax=1)
+        cmap = cm.get_cmap("YlGn")
 
-    # Draw variable nodes
-    for var, y in var_indices.items():
-        for lag in range(max_lag + 1):
-            ax.plot(lag, y, "o", color="lightblue", markersize=8)
-        ax.text(max_lag + 0.4, y, var, va="center", fontsize=10)
+        # Draw variable nodes
+        for var, y in var_indices.items():
+            for lag in range(max_lag + 1):
+                ax.plot(lag, y, "o", color="lightblue", markersize=8)
+            ax.text(max_lag + 0.4, y, var, va="center", fontsize=10)
 
-    # Draw weighted, color-coded arrows
-    for src, tgt, lag, weight in self.edge_list:
-        src_y = var_indices[src]
-        tgt_y = var_indices[tgt]
+        # Draw arrows
+        for src, tgt, lag, weight in self.edge_list:
+            src_y = var_indices[src]
+            tgt_y = var_indices[tgt]
 
-        color = cmap(norm(abs(weight)))
-        linewidth = 2.5 + 3.0 * norm(abs(weight))  # Thickness scales with weight
+            color = cmap(norm(abs(weight)))
+            linewidth = 2.5 + 3.0 * norm(abs(weight))
 
-        ax.annotate(
-            "",
-            xy=(0, tgt_y),
-            xytext=(lag, src_y),
-            arrowprops=dict(
-                arrowstyle="->",
-                lw=linewidth,
-                color=color,
-                shrinkA=5,
-                shrinkB=5,
-            ),
-        )
+            ax.annotate(
+                "",
+                xy=(0, tgt_y),
+                xytext=(lag, src_y),
+                arrowprops=dict(
+                    arrowstyle="->",
+                    lw=linewidth,
+                    color=color,
+                    shrinkA=5,
+                    shrinkB=5,
+                ),
+            )
 
-    # Axis formatting
-    ax.set_yticks(range(n_vars))
-    ax.set_yticklabels(var_names)
-    ax.set_xticks(range(max_lag + 1))
-    ax.set_xticklabels([f"lag {l}" for l in range(max_lag + 1)])
-    ax.set_xlim(-0.5, max_lag + 1)
-    ax.set_ylim(-1, n_vars)
-    ax.invert_xaxis()
-    ax.set_xlabel("Lag")
-    ax.set_title(title, fontsize=13, pad=12)
-    ax.grid(True, axis="x", linestyle="--", alpha=0.4)
+        ax.set_yticks(range(n_vars))
+        ax.set_yticklabels(var_names)
+        ax.set_xticks(range(max_lag + 1))
+        ax.set_xticklabels([f"lag {l}" for l in range(max_lag + 1)])
+        ax.set_xlim(-0.5, max_lag + 1)
+        ax.set_ylim(-1, n_vars)
+        ax.invert_xaxis()
+        ax.set_xlabel("Lag")
+        ax.set_title(title, fontsize=13, pad=12)
+        ax.grid(True, axis="x", linestyle="--", alpha=0.4)
 
-    # Optional: add colorbar
-    sm = cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm.set_array([])
-    cbar = plt.colorbar(sm, ax=ax, orientation="vertical", pad=0.02)
-    cbar.set_label("Causal Strength (|weight|)", rotation=90)
+        # Colorbar only if standalone figure
+        if ax is not None and hasattr(ax, "figure"):
+            fig = ax.figure
+        else:
+            fig = plt.gcf()
 
-    plt.tight_layout()
-    plt.show()
+        sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        cbar = fig.colorbar(sm, ax=ax, orientation="vertical", pad=0.02)
+        cbar.set_label("Causal 'strength' (abs(weight))", rotation=90)
+
+        if ax is None:
+            plt.tight_layout()
+            plt.show()
 
 
 class BenchmarkParam:
-    def __init__(self, n_time, n_vars, causal_structure, noise_level):
+    def __init__(self, causal_structure, noise_level):
         """
         Args:
-            n_time (int): Time series length.
-            n_vars (int): Number of variables.
             causal_structure (CausalStructure): Causal structure for synthetic data.
             noise_level (float): Noise level in synthetic data.
         """
-        self.n_time = n_time
-        self.n_vars = n_vars
         self.causal_structure = causal_structure
         self.noise_level = noise_level
 
@@ -185,71 +208,89 @@ class BenchmarkParam:
         param_name,
         param_values,
         fixed_params,
+        n_runs=5,
     ):
         """
         Benchmarks Tigramite and Rust PCMCI runtimes and differences over a range of a single parameter.
+        Runs each configuration multiple times for stability.
 
         Args:
-            param_name (str): The name of the parameter to vary. One of: 'max_lag', 'alpha', 'cond_size', 'subsets'.
-            param_values (list): Values of that parameter to iterate over.
-            n_time (int): Time series length.
-            n_vars (int): Number of variables.
-            causal_structure (CausalStructure): Causal structure for synthetic data.
-            noise_level (float): Noise level in synthetic data.
-            fixed_params (dict): Other parameters (not varied) as a dictionary.
+            param_name (str): Parameter to vary.
+            param_values (list): Values to iterate over.
+            fixed_params (dict): Other parameters held fixed.
+            n_runs (int): Number of runs per parameter value.
 
         Returns:
-            pd.DataFrame: DataFrame of benchmark results.
+            pd.DataFrame: Results with means over n_runs.
         """
         tig_times = []
         rust_times = []
-        diffs = []
+        mean_rel_errors = []
+        cosine_sims = []
+        pearson_corrs = []
+
         causal_structure_dict = self.causal_structure.as_dict()
 
         for val in param_values:
-            # Set the dynamic parameter
             params = fixed_params.copy()
             params[param_name] = val
 
-            data = self._generate_synthetic_data(
-                self.n_time,
-                self.n_vars,
-                params["max_lag"],
-                causal_structure_dict,
-                self.noise_level,
-            )
+            tig_time_runs = []
+            rust_time_runs = []
+            rel_errors = []
+            cos_sims = []
+            pearsons = []
 
-            result_tig, time_tig = self._run_pcmci_tigramite(
-                data,
-                params["max_lag"],
-                params["alpha"],
-                params["cond_size"],
-                params["subsets"],
-            )
-            result_rust, time_rust = self._run_pcmci_rust(
-                data,
-                params["max_lag"],
-                params["alpha"],
-                params["cond_size"],
-                params["subsets"],
-            )
+            for _ in range(n_runs):
+                data = self._generate_synthetic_data(
+                    params["n_time"],
+                    params["n_vars"],
+                    params["max_lag"],
+                    causal_structure_dict,
+                    self.noise_level,
+                )
 
-            metrics = self._calculate_difference_metrics(
-                result_tig["val_matrix"], result_rust["val_matrix"]
-            )
+                result_tig, time_tig = self._run_pcmci_tigramite(
+                    data,
+                    params["max_lag"],
+                    params["alpha"],
+                    params["cond_size"],
+                    params["subsets"],
+                )
 
-            tig_times.append(time_tig)
-            rust_times.append(time_rust)
-            diffs.append(metrics)
+                result_rust, time_rust = self._run_pcmci_rust(
+                    data,
+                    params["max_lag"],
+                    params["alpha"],
+                    params["cond_size"],
+                    params["subsets"],
+                )
+
+                metrics = self._calculate_difference_metrics(
+                    result_tig["val_matrix"], result_rust["val_matrix"]
+                )
+
+                tig_time_runs.append(time_tig)
+                rust_time_runs.append(time_rust)
+                rel_errors.append(metrics["mean_rel_error"])
+                cos_sims.append(metrics["cosine_similarity"])
+                pearsons.append(metrics["pearson_corr"])
+
+            # Store mean of n_runs
+            tig_times.append(np.mean(tig_time_runs))
+            rust_times.append(np.mean(rust_time_runs))
+            mean_rel_errors.append(np.mean(rel_errors))
+            cosine_sims.append(np.mean(cos_sims))
+            pearson_corrs.append(np.mean(pearsons))
 
         df_results = pd.DataFrame(
             {
                 param_name: param_values,
                 "time_tigramite": tig_times,
                 "time_rust": rust_times,
-                "mean_rel_error": [d["mean_rel_error"] for d in diffs],
-                "cosine_similarity": [d["cosine_similarity"] for d in diffs],
-                "pearson_corr": [d["pearson_corr"] for d in diffs],
+                "mean_rel_error": mean_rel_errors,
+                "cosine_similarity": cosine_sims,
+                "pearson_corr": pearson_corrs,
             }
         )
 
@@ -258,7 +299,7 @@ class BenchmarkParam:
 
         return df_results
 
-    def plot(self):
+    def plot_exec_time(self):
         plt.figure(figsize=(8, 5))
         plt.plot(
             self.results[self.param_name],
@@ -280,26 +321,80 @@ class BenchmarkParam:
         plt.tight_layout()
         plt.show()
 
-
-class CausalStructure:
-    def __init__(self, edge_list, var_names):
-        self.edge_list = edge_list
-        self.var_names = var_names
-
-    def as_dict(self):
+    def plot_causal_structures(self, fixed_params):
         """
-        Returns the causal structure as a dictionary mapping target variable indices
-        to lists of (source index, lag, coefficient) tuples.
+        Plots inferred causal structures side-by-side for Tigramite and Rust PCMCI.
+        Uses the existing CausalStructure.plot() method for consistency.
         """
-        var_indices = {name: i for i, name in enumerate(self.var_names)}
-        causal_structure_dict = {}
+        # Generate fresh synthetic data with the same causal ground truth
+        data = self._generate_synthetic_data(
+            fixed_params["n_time"],
+            fixed_params["n_vars"],
+            fixed_params["max_lag"],
+            self.causal_structure.as_dict(),
+            self.noise_level,
+        )
 
-        for src, tgt, lag, coeff in self.edge_list:
-            tgt_idx = var_indices[tgt]
-            src_idx = var_indices[src]
+        # Run Tigramite
+        result_tig, _ = self._run_pcmci_tigramite(
+            data,
+            fixed_params["max_lag"],
+            fixed_params["alpha"],
+            fixed_params["cond_size"],
+            fixed_params["subsets"],
+        )
 
-            if tgt_idx not in causal_structure_dict:
-                causal_structure_dict[tgt_idx] = []
-            causal_structure_dict[tgt_idx].append((src_idx, lag, coeff))
+        # Run Rust
+        result_rust, _ = self._run_pcmci_rust(
+            data,
+            fixed_params["max_lag"],
+            fixed_params["alpha"],
+            fixed_params["cond_size"],
+            fixed_params["subsets"],
+        )
 
-        return causal_structure_dict
+        # Extract inferred links (use val_matrix and some threshold)
+        edges_tig = []
+        val_matrix_tig = result_tig["val_matrix"]
+        p_matrix_tig = result_tig["p_matrix"]
+
+        for src in range(val_matrix_tig.shape[0]):
+            for tgt in range(val_matrix_tig.shape[1]):
+                for lag in range(1, val_matrix_tig.shape[2]):
+                    effect = val_matrix_tig[src, tgt, lag]
+                    if (
+                        not np.isnan(effect)
+                        and abs(effect) > 0.01
+                        and p_matrix_tig[src, tgt, lag] < fixed_params["alpha"]
+                    ):
+                        # Only include edges with significant p-value and non-zero effect size
+                        edges_tig.append((f"var{src}", f"var{tgt}", lag, effect))
+
+        edges_rust = []
+        val_matrix_rust = result_rust["val_matrix"]
+        p_matrix_rust = result_rust["p_matrix"]
+
+        for src in range(val_matrix_rust.shape[0]):
+            for tgt in range(val_matrix_rust.shape[1]):
+                for lag in range(1, val_matrix_rust.shape[2]):
+                    effect = val_matrix_rust[src, tgt, lag]
+                    if (
+                        not np.isnan(effect)
+                        and abs(effect) > 0.01
+                        and p_matrix_rust[src, tgt, lag] < fixed_params["alpha"]
+                    ):
+                        # Only include edges with significant p-value and non-zero effect size
+                        edges_rust.append((f"var{src}", f"var{tgt}", lag, effect))
+
+        var_names = [f"var{i}" for i in range(fixed_params["n_vars"])]
+
+        causal_tig = CausalStructure(edges_tig, var_names)
+        causal_rust = CausalStructure(edges_rust, var_names)
+
+        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+        causal_tig.plot(title="Tigramite PCMCI", ax=axes[0])
+        causal_rust.plot(title="Rust PCMCI", ax=axes[1])
+
+        plt.tight_layout()
+        plt.show()
