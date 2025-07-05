@@ -38,7 +38,7 @@ class CausalStructure:
 
     def plot(self, title="", ax=None):
         """
-        Plots a time-unrolled causal graph.
+        Plots a time-unrolled causal graph with signed weights.
         If ax is given, draw on it; otherwise create a new figure.
         """
 
@@ -58,22 +58,23 @@ class CausalStructure:
         if ax is None:
             fig, ax = plt.subplots(figsize=(3 * max_lag + 2, 0.8 * n_vars + 2))
 
-        norm = mcolors.Normalize(vmin=0, vmax=1)
-        cmap = cm.get_cmap("YlGn")
+        # Normalization: signed weights
+        norm = mcolors.TwoSlopeNorm(vmin=-1, vcenter=0, vmax=1)
+        cmap = cm.get_cmap("RdBu_r")
 
         # Draw variable nodes
         for var, y in var_indices.items():
             for lag in range(max_lag + 1):
-                ax.plot(lag, y, "o", color="lightblue", markersize=8)
+                ax.plot(lag, y, "o", color="lightgray", markersize=8)
             ax.text(max_lag + 0.4, y, var, va="center", fontsize=10)
 
-        # Draw arrows
+        # Draw arrows with signed colors
         for src, tgt, lag, weight in self.edge_list:
             src_y = var_indices[src]
             tgt_y = var_indices[tgt]
 
-            color = cmap(norm(abs(weight)))
-            linewidth = 2.5 + 3.0 * norm(abs(weight))
+            color = cmap(norm(weight))
+            linewidth = 2.5 + 3.0 * abs(weight)
 
             ax.annotate(
                 "",
@@ -99,7 +100,7 @@ class CausalStructure:
         ax.set_title(title, fontsize=13, pad=12)
         ax.grid(True, axis="x", linestyle="--", alpha=0.4)
 
-        # Colorbar only if standalone figure
+        # Colorbar for signed weights
         if ax is not None and hasattr(ax, "figure"):
             fig = ax.figure
         else:
@@ -108,7 +109,7 @@ class CausalStructure:
         sm = cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
         cbar = fig.colorbar(sm, ax=ax, orientation="vertical", pad=0.02)
-        cbar.set_label("Causal 'strength' (abs(weight))", rotation=90)
+        cbar.set_label("Causal weight (signed)", rotation=90)
 
         if ax is None:
             plt.tight_layout()
