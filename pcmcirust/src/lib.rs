@@ -259,10 +259,33 @@ impl<'a> PCMCI<'a> {
 
         // If no conditioning, compute direct Pearson correlation
         if cond_set.is_empty() {
+            if n <= 2 {
+                return Err(format!(
+                    "Too few samples to compute t-statistic (n = {})",
+                    n
+                ));
+            }
+
             let corr = self.pearson_correlation(&x, &y)?;
-            let t_stat = corr * (n as f64 - 2.0).sqrt() / (1.0 - corr * corr).sqrt();
+
+            if corr.abs() >= 1.0 {
+                return Err(format!("Perfect correlation detected (corr = {})", corr));
+            }
+
+            let denom = (1.0 - corr * corr).sqrt();
+            if denom == 0.0 {
+                return Err("Denominator is zero in t-statistic calculation".to_string());
+            }
+
+            let t_stat = corr * (n as f64 - 2.0).sqrt() / denom;
+
+            if !t_stat.is_finite() {
+                return Err(format!("t_stat is not finite (t_stat = {})", t_stat));
+            }
+
             let dist = statrs::distribution::StudentsT::new(0.0, 1.0, (n - 2) as f64)
                 .map_err(|e| e.to_string())?;
+
             let p_val = 2.0 * (1.0 - dist.cdf(t_stat.abs()));
             return Ok((corr, p_val));
         }
