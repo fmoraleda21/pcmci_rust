@@ -21,8 +21,11 @@ pcmci-rust/
 ## ⚡ Features
 
 ✅ **Safe Rust core**: Written in Rust with modern concurrency (Rayon).  
+
 ✅ **Zero-copy** bindings: Efficient memory sharing with `numpy` and R structures.
+
 ✅ **Parallelized**: Core phases run in parallel over variables and candidates.
+
 ✅ **Flexible**: Similar API parameters and outputs as `tigramite` for easy migration.
 
 ---
