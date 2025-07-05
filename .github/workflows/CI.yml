@@ -38,7 +38,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Move source files to root (Linux/macOS)
-        if: runner.os != 'Windows'
         shell: bash
         run: |
           if [ -d "pcmcirustpy" ]; then
@@ -74,7 +73,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Move source files to root (Windows)
-        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           if (Test-Path "pcmcirustpy") {
@@ -110,13 +108,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Move source files to root (Linux/macOS)
-        if: runner.os != 'Windows'
         shell: bash
         run: |
           if [ -d "pcmcirustpy" ]; then
             mv pcmcirustpy/* .
             rm -rf pcmcirustpy
-            sed -i 's|path = "../pcmcirust"|path = "./pcmcirust"|' Cargo.toml
+            sed -i '' 's|path = "../pcmcirust"|path = "./pcmcirust"|' Cargo.toml
           fi
       - uses: actions/setup-python@v5
         with:
