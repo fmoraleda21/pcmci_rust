@@ -44,6 +44,7 @@ jobs:
           if [ -d "pcmcirustpy" ]; then
             mv pcmcirustpy/* .
             rm -rf pcmcirustpy
+            sed -i 's|path = "../pcmcirust"|path = "./pcmcirust"|' Cargo.toml
           fi
       - uses: actions/setup-python@v5
         with:
@@ -79,6 +80,7 @@ jobs:
           if (Test-Path "pcmcirustpy") {
             Move-Item pcmcirustpy\* . -Force
             Remove-Item -Recurse -Force pcmcirustpy
+            (Get-Content Cargo.toml) -replace 'path = "\.\./pcmcirust"', 'path = "./pcmcirust"' | Set-Content Cargo.toml
           }
       - uses: actions/setup-python@v5
         with:
@@ -114,6 +116,7 @@ jobs:
           if [ -d "pcmcirustpy" ]; then
             mv pcmcirustpy/* .
             rm -rf pcmcirustpy
+            sed -i 's|path = "../pcmcirust"|path = "./pcmcirust"|' Cargo.toml
           fi
       - uses: actions/setup-python@v5
         with:
