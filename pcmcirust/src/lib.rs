@@ -137,9 +137,9 @@ impl<'a> PCMCI<'a> {
         // Build initial candidate set
         let mut candidates: Vec<Candidate> = Vec::new();
         for j in 0..n_vars {
-            if j == target {
-                continue;
-            }
+            // if j == target {
+            //     continue;
+            // }
             for lag in 1..=self.max_lag {
                 candidates.push(Candidate { var: j, lag });
             }
